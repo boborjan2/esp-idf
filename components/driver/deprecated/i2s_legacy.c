@@ -2001,3 +2001,73 @@ static __attribute__((constructor)) void check_i2s_driver_conflict(void)
     ESP_EARLY_LOGW(TAG, "legacy i2s driver is deprecated, please migrate to use driver/i2s_std.h, driver/i2s_pdm.h or driver/i2s_tdm.h");
 }
 #endif //CONFIG_I2S_SKIP_LEGACY_CONFLICT_CHECK
+
+
+#define I2S_CHECK(_v, _s, _r)   ESP_RETURN_ON_FALSE(_v, _r, TAG, _s)
+static esp_err_t i2s_get_dmabuf(i2s_dma_t *dma, void **dest, size_t *size, TickType_t ticks_to_wait)
+{
+    I2S_CHECK(dma, "dma NULL", ESP_ERR_INVALID_ARG);
+    xSemaphoreTake(dma->mux, portMAX_DELAY);
+#ifdef CONFIG_PM_ENABLE
+    esp_pm_lock_acquire(p_i2s[i2s_num]->pm_lock);
+#endif
+    if (dma->rw_pos == dma->buf_size || dma->curr_ptr == NULL) {
+        if (xQueueReceive(dma->queue, &dma->curr_ptr, ticks_to_wait) == pdFALSE) {
+            *size = 0;
+            goto out;
+        }
+        dma->rw_pos = 0;
+    }
+    *dest = (char*)dma->curr_ptr + dma->rw_pos;
+    *size = dma->buf_size - dma->rw_pos;
+    return ESP_OK;
+
+out:
+#ifdef CONFIG_PM_ENABLE
+    esp_pm_lock_release(p_i2s[i2s_num]->pm_lock);
+#endif
+    xSemaphoreGive(dma->mux);
+    return ESP_OK;
+} /* i2s_get_dmabuf */
+
+static esp_err_t i2s_put_dmabuf(i2s_dma_t *dma, size_t size)
+{
+    I2S_CHECK(dma, "dma NULL", ESP_ERR_INVALID_ARG);
+
+    dma->rw_pos += size;
+
+#ifdef CONFIG_PM_ENABLE
+    esp_pm_lock_release(p_i2s[i2s_num]->pm_lock);
+#endif
+    xSemaphoreGive(dma->mux);
+    return ESP_OK;
+} /* i2s_put_dmabuf */
+
+
+esp_err_t i2s_get_readbuf(i2s_port_t i2s_num, void **dest, size_t *size, TickType_t ticks_to_wait)
+{
+    I2S_CHECK((i2s_num < SOC_I2S_NUM), "i2s_num error", ESP_ERR_INVALID_ARG);
+
+    return i2s_get_dmabuf(p_i2s[i2s_num]->rx, dest, size, ticks_to_wait);
+}
+
+esp_err_t i2s_put_readbuf(i2s_port_t i2s_num, size_t size)
+{
+    I2S_CHECK((i2s_num < SOC_I2S_NUM), "i2s_num error", ESP_ERR_INVALID_ARG);
+
+    return i2s_put_dmabuf(p_i2s[i2s_num]->rx, size);
+}
+
+esp_err_t i2s_get_writebuf(i2s_port_t i2s_num, void **buf, size_t *size, TickType_t ticks_to_wait)
+{
+    I2S_CHECK((i2s_num < SOC_I2S_NUM), "i2s_num error", ESP_ERR_INVALID_ARG);
+
+    return i2s_get_dmabuf(p_i2s[i2s_num]->tx, buf, size, ticks_to_wait);
+}
+
+esp_err_t i2s_put_writebuf(i2s_port_t i2s_num, size_t size)
+{
+    I2S_CHECK((i2s_num < SOC_I2S_NUM), "i2s_num error", ESP_ERR_INVALID_ARG);
+
+    return i2s_put_dmabuf(p_i2s[i2s_num]->tx, size);
+}

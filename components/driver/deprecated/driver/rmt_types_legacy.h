@@ -242,6 +242,7 @@ typedef intr_handle_t rmt_isr_handle_t;
  * @brief Type of RMT Tx End callback function
  */
 typedef void (*rmt_tx_end_fn_t)(rmt_channel_t channel, void *arg);
+typedef void (*rmt_rx_end_fn_t)(rmt_channel_t channel, volatile rmt_item32_t *mem, int n, void *arg);
 
 /**
  * @brief Structure encapsulating a RMT TX end callback
@@ -250,6 +251,11 @@ typedef struct {
     rmt_tx_end_fn_t function; /*!< Function which is called on RMT TX end */
     void *arg;                /*!< Optional argument passed to function */
 } rmt_tx_end_callback_t;
+
+typedef struct {
+    rmt_rx_end_fn_t function; /*!< Function which is called on RMT RX end */
+    void *arg;                /*!< Optional argument passed to function */
+} rmt_rx_end_callback_t;
 
 /**
  * @brief User callback function to convert uint8_t type data to rmt format(rmt_item32_t).
