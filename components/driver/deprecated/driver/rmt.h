@@ -670,6 +670,7 @@ esp_err_t rmt_write_sample(rmt_channel_t channel, const uint8_t *src, size_t src
 * @return the previous callback settings (members will be set to NULL if there was none)
 */
 rmt_tx_end_callback_t rmt_register_tx_end_callback(rmt_tx_end_fn_t function, void *arg);
+rmt_rx_end_callback_t rmt_register_rx_end_callback(rmt_rx_end_fn_t function, void *arg);
 
 #if SOC_RMT_SUPPORT_RX_PINGPONG
 /**
