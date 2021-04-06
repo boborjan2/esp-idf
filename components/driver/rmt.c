@@ -62,6 +62,7 @@ typedef struct {
     portMUX_TYPE rmt_spinlock; // Mutex lock for protecting concurrent register/unregister of RMT channels' ISR
     rmt_isr_handle_t rmt_driver_intr_handle;
     rmt_tx_end_callback_t rmt_tx_end_callback;// Event called when transmission is ended
+    rmt_rx_end_callback_t rmt_rx_end_callback;// Event called when reception is ended
     uint8_t rmt_driver_channels; // Bitmask of installed drivers' channels
     bool rmt_module_enabled;
 } rmt_contex_t;
@@ -98,6 +99,9 @@ static rmt_contex_t rmt_contex = {
     .rmt_spinlock = portMUX_INITIALIZER_UNLOCKED,
     .rmt_driver_intr_handle = NULL,
     .rmt_tx_end_callback = {
+        .function = NULL,
+    },
+    .rmt_rx_end_callback = {
         .function = NULL,
     },
     .rmt_driver_channels = 0,
@@ -753,8 +757,8 @@ static void IRAM_ATTR rmt_driver_isr_default(void *arg)
             rmt_ll_enable_rx(rmt_contex.hal.regs, channel, false);
             int item_len = rmt_get_mem_len(channel);
             rmt_ll_set_mem_owner(rmt_contex.hal.regs, channel, RMT_MEM_OWNER_SW);
+            addr = RMTMEM.chan[channel].data32;
             if (p_rmt->rx_buf) {
-                addr = RMTMEM.chan[channel].data32;
 #if SOC_RMT_SUPPORT_RX_PINGPONG
                 if (item_len > p_rmt->rx_item_start_idx) {
                     item_len = item_len - p_rmt->rx_item_start_idx;
@@ -768,8 +772,13 @@ static void IRAM_ATTR rmt_driver_isr_default(void *arg)
                 if (res == pdFALSE) {
                     ESP_EARLY_LOGE(RMT_TAG, "RMT RX BUFFER FULL");
                 }
-            } else {
+            } else if (rmt_contex.rmt_rx_end_callback.function == NULL) {
+                /* only output error if no callbacks either */
                 ESP_EARLY_LOGE(RMT_TAG, "RMT RX BUFFER ERROR");
+            }
+
+            if (rmt_contex.rmt_rx_end_callback.function != NULL) {
+                rmt_contex.rmt_rx_end_callback.function(channel, addr, item_len, rmt_contex.rmt_rx_end_callback.arg);
             }
 
 #if SOC_RMT_SUPPORT_RX_PINGPONG
@@ -1087,6 +1096,14 @@ rmt_tx_end_callback_t rmt_register_tx_end_callback(rmt_tx_end_fn_t function, voi
     rmt_tx_end_callback_t previous = rmt_contex.rmt_tx_end_callback;
     rmt_contex.rmt_tx_end_callback.function = function;
     rmt_contex.rmt_tx_end_callback.arg = arg;
+    return previous;
+}
+
+rmt_rx_end_callback_t rmt_register_rx_end_callback(rmt_rx_end_fn_t function, void *arg)
+{
+    rmt_rx_end_callback_t previous = rmt_contex.rmt_rx_end_callback;
+    rmt_contex.rmt_rx_end_callback.function = function;
+    rmt_contex.rmt_rx_end_callback.arg = arg;
     return previous;
 }
 
