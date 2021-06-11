@@ -781,6 +781,13 @@
 #define LWIP_HOOK_FILENAME              "lwip_default_hooks.h"
 #define LWIP_HOOK_IP4_ROUTE_SRC         ip4_route_src_hook
 
+#define LWIP_ARP_FILTER_NETIF           1
+#define LWIP_ARP_FILTER_NETIF_FN        dns_redirect_netif_filter /* for implementing virtual interface filter on same physical interface used for simulating  off-subnet http server for android */
+#define LWIP_HOOK_ETHARP_GET_GW         dns_redirect_get_gw       /* off-subnet target address without gateway. used for simulating  off-subnet http server for android */
+
+struct netif *dns_redirect_netif_filter(void *p, struct netif *netif, unsigned short type);
+const void *dns_redirect_get_gw(struct netif *netif, const void *dest);
+
 /*
    ---------------------------------------
    ---------- Debugging options ----------
