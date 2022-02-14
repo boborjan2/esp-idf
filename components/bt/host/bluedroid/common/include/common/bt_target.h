@@ -1726,7 +1726,7 @@ Range: 2 octets
 
 /* Maximum size in bytes of the codec capabilities information element. */
 #ifndef AVDT_CODEC_SIZE
-#define AVDT_CODEC_SIZE             10
+#define AVDT_CODEC_SIZE             20
 #endif
 
 #ifndef AVDT_CODEC_HEADER_SIZE
