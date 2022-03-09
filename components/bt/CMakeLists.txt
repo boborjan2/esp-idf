@@ -590,7 +590,8 @@ if(CONFIG_BT_ENABLED)
 endif()
 
 if(CONFIG_BT_A2DP_APTX_DECODER)
-    list(APPEND srcs "host/bluedroid/stack/a2dp/a2dp_vendor_aptx.c")
+    list(APPEND srcs "host/bluedroid/stack/a2dp/a2dp_vendor_aptx.c"
+                     "host/bluedroid/stack/a2dp/a2dp_vendor_aptx_decoder.c")
 endif()
 
 # requirements can't depend on config
@@ -615,4 +616,25 @@ if(CONFIG_BT_ENABLED)
                 "-L${CMAKE_CURRENT_LIST_DIR}/controller/lib_esp32c3_family/esp32s3")
         target_link_libraries(${COMPONENT_LIB} PUBLIC btdm_app btbb)
     endif()
+endif()
+
+if(CONFIG_BT_A2DP_APTX_DECODER)
+    add_prebuilt_library(libfreeaptx "${CMAKE_CURRENT_SOURCE_DIR}/host/bluedroid/external/libfreeaptx/libfreeaptx.a")
+    target_link_libraries(${COMPONENT_LIB} PUBLIC libfreeaptx)
+endif()
+
+if(CONFIG_BT_NIMBLE_MESH)
+    set_source_files_properties("host/nimble/nimble/nimble/host/mesh/src/net.c"
+        PROPERTIES COMPILE_FLAGS -Wno-type-limits)
+endif()
+
+if(CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_DISABLE AND CONFIG_BT_NIMBLE_ENABLED)
+    # some variables in NimBLE are only used by asserts
+    target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-unused-but-set-variable -Wno-unused-variable)
+endif()
+
+if(NOT CMAKE_BUILD_EARLY_EXPANSION)
+    set_source_files_properties("${CMAKE_CURRENT_LIST_DIR}/host/bluedroid/bta/hf_ag/bta_ag_cmd.c"
+                                "${CMAKE_CURRENT_LIST_DIR}/host/bluedroid/btc/profile/std/gap/btc_gap_ble.c"
+                                 PROPERTIES COMPILE_FLAGS "-fjump-tables -ftree-switch-conversion")
 endif()
