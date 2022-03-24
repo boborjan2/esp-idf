@@ -8,7 +8,7 @@ endif
 
 PROJECT_NAME := bootloader
 
-COMPONENTS := esp_hw_support esptool_py bootloader_support log spi_flash micro-ecc soc main efuse esp_rom hal xtensa
+COMPONENTS := esp_hw_support esptool_py bootloader_support log spi_flash micro-ecc soc main efuse esp_rom hal xtensa $(BOOTLOADER_EXTRA_COMPONENT)
 
 # Clear C and CXX from top level project
 CFLAGS =

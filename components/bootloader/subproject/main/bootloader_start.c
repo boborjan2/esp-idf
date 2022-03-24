@@ -23,6 +23,10 @@ static const char *TAG = "boot";
 static int select_partition_number(bootloader_state_t *bs);
 static int selected_boot_partition(const bootloader_state_t *bs);
 
+void __attribute__((weak)) bootloader_after_init(void)
+{
+    //ESP_LOGE(TAG, "WEAK AFTER INIT");
+}
 /*
  * We arrive here after the ROM bootloader finished loading this second stage bootloader from flash.
  * The hardware is mostly uninitialized, flash cache is down and the app CPU is in reset.
@@ -41,9 +45,7 @@ void __attribute__((noreturn)) call_start_cpu0(void)
     }
 
     // (1.1 Call the after-init hook, if available)
-    if (bootloader_after_init) {
-        bootloader_after_init();
-    }
+    bootloader_after_init();
 
 #ifdef CONFIG_BOOTLOADER_SKIP_VALIDATE_IN_DEEP_SLEEP
     // If this boot is a wake up from the deep sleep then go to the short way,
