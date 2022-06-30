@@ -33,6 +33,6 @@ void __attribute__((weak)) bootloader_before_init(void);
  * @brief Function executed *after* the second stage bootloader initialization,
  * if provided.
  */
-void bootloader_after_init(void);
+void __attribute__((weak)) bootloader_after_init(void);
 
 #endif // BOOTLOADER_HOOKS_H
