@@ -23,6 +23,10 @@ static const char *TAG = "boot";
 static int select_partition_number(bootloader_state_t *bs);
 static int selected_boot_partition(const bootloader_state_t *bs);
 
+void __attribute__((weak)) bootloader_after_init(void)
+{
+    //ESP_LOGE(TAG, "WEAK AFTER INIT");
+}
 /*
  * We arrive here after the ROM bootloader finished loading this second stage bootloader from flash.
  * The hardware is mostly uninitialized, flash cache is down and the app CPU is in reset.
