@@ -50,6 +50,10 @@ endif
 
 CFLAGS += -Wno-address  # lots of LWIP source files evaluate macros that check address of stack variables
 
+ifdef EXTRA_LWIP_HOOK_FILENAME
+CPPFLAGS += -DESP_IDF_LWIP_HOOK_FILENAME=$(EXTRA_LWIP_HOOK_FILENAME)
+endif
+
 lwip/src/netif/ppp/ppp.o: CFLAGS += -Wno-uninitialized
 lwip/src/netif/ppp/pppos.o: CFLAGS += -Wno-implicit-fallthrough
 lwip/src/core/tcp.o: CFLAGS += -Wno-type-limits
