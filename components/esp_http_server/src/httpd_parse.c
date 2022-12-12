@@ -856,53 +856,31 @@ esp_err_t httpd_query_key_value(const char *qry_str, const char *key, char *val,
         return ESP_ERR_INVALID_ARG;
     }
 
-    const char   *qry_ptr = qry_str;
-    const size_t  buf_len = val_size;
+    const char *qry_end = qry_str + strlen(qry_str);
+    const char *s = qry_end;
+    int key_len = strlen(key);
 
-    while (strlen(qry_ptr)) {
-        /* Search for the '=' character. Else, it would mean
-         * that the parameter is invalid */
-        const char *val_ptr = strchr(qry_ptr, '=');
-        if (!val_ptr) {
-            break;
+    while(s > qry_str) {
+        /* find next '&' from the end */
+        while(s > qry_str && *s != '&') {
+            s--;
         }
-        size_t offset = val_ptr - qry_ptr;
-
-        /* If the key, does not match, continue searching.
-         * Compare lengths first as key from url is not
-         * null terminated (has '=' in the end) */
-        if ((offset != strlen(key)) ||
-            (strncasecmp(qry_ptr, key, offset))) {
-            /* Get the name=val string. Multiple name=value pairs
-             * are separated by '&' */
-            qry_ptr = strchr(val_ptr, '&');
-            if (!qry_ptr) {
-                break;
+        const char *param = *s == '&' ? s + 1 : s;
+        if(!strncmp(key, param, key_len) && param[key_len] == '=') {
+            s = param + key_len + 1;
+            const char *endval = strchr(s, '&');
+            if(!endval) {
+                endval = qry_end;
             }
-            qry_ptr++;
-            continue;
+            int vallen = MIN(val_size - 1, endval - s);
+            strncpy(val, s, vallen);
+            val[vallen] = 0;
+
+            return val_size - 1 >= endval - s ? ESP_OK : ESP_ERR_HTTPD_RESULT_TRUNC;
         }
-
-        /* Locate start of next query */
-        qry_ptr = strchr(++val_ptr, '&');
-        /* Or this could be the last query, in which
-         * case get to the end of query string */
-        if (!qry_ptr) {
-            qry_ptr = val_ptr + strlen(val_ptr);
-        }
-
-        /* Update value length, including one byte for null */
-        val_size = qry_ptr - val_ptr + 1;
-
-        /* Copy value to the caller's buffer. */
-        strlcpy(val, val_ptr, MIN(val_size, buf_len));
-
-        /* If buffer length is smaller than needed, return truncation error */
-        if (buf_len < val_size) {
-            return ESP_ERR_HTTPD_RESULT_TRUNC;
-        }
-        return ESP_OK;
+        s--;
     }
+
     ESP_LOGD(TAG, LOG_FMT("key %s not found"), key);
     return ESP_ERR_NOT_FOUND;
 }
