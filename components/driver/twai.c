@@ -184,22 +184,27 @@ static inline void twai_handle_tx_buffer_frame(BaseType_t *task_woken, int *aler
         twai_alert_handler(TWAI_ALERT_TX_FAILED, alert_req);
     }
 
-    //Update TX message count
-    p_twai_obj->tx_msg_count--;
-    assert(p_twai_obj->tx_msg_count >= 0);      //Sanity check
+    if(p_twai_obj->state == TWAI_STATE_RECOVERING) {
+        /* tx_msg_count gets zeroed by API call */
+    }
+    else {
+        //Update TX message count
+        p_twai_obj->tx_msg_count--;
+        assert(p_twai_obj->tx_msg_count >= 0);      //Sanity check
 
-    //Check if there are more frames to transmit
-    if (p_twai_obj->tx_msg_count > 0 && p_twai_obj->tx_queue != NULL) {
-        twai_hal_frame_t frame;
-        int res = xQueueReceiveFromISR(p_twai_obj->tx_queue, &frame, task_woken);
-        if (res == pdTRUE) {
-            twai_hal_set_tx_buffer_and_transmit(&twai_context, &frame);
+        //Check if there are more frames to transmit
+        if (p_twai_obj->tx_msg_count > 0 && p_twai_obj->tx_queue != NULL) {
+            twai_hal_frame_t frame;
+            int res = xQueueReceiveFromISR(p_twai_obj->tx_queue, &frame, task_woken);
+            if (res == pdTRUE) {
+                twai_hal_set_tx_buffer_and_transmit(&twai_context, &frame);
+            } else {
+                assert(false && "failed to get a frame from TX queue");
+            }
         } else {
-            assert(false && "failed to get a frame from TX queue");
+            //No more frames to transmit
+            twai_alert_handler(TWAI_ALERT_TX_IDLE, alert_req);
         }
-    } else {
-        //No more frames to transmit
-        twai_alert_handler(TWAI_ALERT_TX_IDLE, alert_req);
     }
 }
 
@@ -653,6 +658,8 @@ esp_err_t twai_initiate_recovery(void)
     TWAI_CHECK_FROM_CRIT(p_twai_obj != NULL, ESP_ERR_INVALID_STATE);
     TWAI_CHECK_FROM_CRIT(p_twai_obj->state == TWAI_STATE_BUS_OFF, ESP_ERR_INVALID_STATE);
 
+    p_twai_obj->state = TWAI_STATE_RECOVERING;
+
     //Reset TX Queue/Counters
     if (p_twai_obj->tx_queue != NULL) {
         xQueueReset(p_twai_obj->tx_queue);
@@ -661,7 +668,6 @@ esp_err_t twai_initiate_recovery(void)
 
     //Trigger start of recovery process
     twai_hal_start_bus_recovery(&twai_context);
-    p_twai_obj->state = TWAI_STATE_RECOVERING;
     TWAI_EXIT_CRITICAL();
 
     return ESP_OK;
