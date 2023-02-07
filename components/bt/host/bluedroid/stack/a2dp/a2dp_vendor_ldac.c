@@ -16,6 +16,7 @@
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
 
 /* LDAC Source codec capabilities */
+#if 0
 static const tA2DP_LDAC_CIE a2dp_ldac_source_caps = {
     A2DP_LDAC_VENDOR_ID,  // vendorId
     A2DP_LDAC_CODEC_ID,   // codecId
@@ -26,6 +27,7 @@ static const tA2DP_LDAC_CIE a2dp_ldac_source_caps = {
     (A2DP_LDAC_CHANNEL_MODE_DUAL | A2DP_LDAC_CHANNEL_MODE_STEREO),
     // bits_per_sample
     BTAV_A2DP_CODEC_BITS_PER_SAMPLE_16};
+#endif
 
 /* LDAC Sink codec capabilities */
 static const tA2DP_LDAC_CIE a2dp_ldac_sink_caps = {

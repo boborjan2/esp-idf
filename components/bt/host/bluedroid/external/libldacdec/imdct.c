@@ -9,7 +9,7 @@
 #define DEF_IMDCTWINDOW(i) float ImdctWindow_##i[1<<i];
 #define DEF_SHUFFLETABLE(i) int ShuffleTable_##i[1<<i];
 
-#define DEF_GET_WINDOW_FUNC(table, type) inline type* Get##table(int i) {	\
+#define DEF_GET_WINDOW_FUNC(table, type)  type* Get##table(int i) {	\
 	switch(i) {																\
 		case 7: return table##_7;											\
 		case 8: return table##_8;											\
@@ -22,7 +22,7 @@
 #define DEF_SINTABLE(i) float SinTable_##i[1<<i]
 #define DEF_COSTABLE(i) float CosTable_##i[1<<i]
 
-#define DEF_GET_TABLE_FUNC(table) inline float* Get##table(int i) {		\
+#define DEF_GET_TABLE_FUNC(table)  float* Get##table(int i) {		\
 	switch(i) {															\
 		case 0: return table##_0;										\
 		case 1: return table##_1;										\
@@ -127,7 +127,7 @@ void InitMdct()
 	for (int i = 0; i < 9; i++)
 	{
 		GenerateTrigTables(i);
-	}		
+	}
 
 	GenerateShuffleTable(7);
 	GenerateShuffleTable(8);
@@ -156,7 +156,7 @@ void RunImdct(Mdct* mdct, float* input, float* output)
 	float* previous = mdct->ImdctPrevious;
 
     Dct4(mdct, input, dctOut);
-	
+
     for (int i = 0; i < half; i++)
 	{
 		output[i] = window[i] * dctOut[i + half] + previous[i];

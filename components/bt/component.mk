@@ -84,6 +84,7 @@ COMPONENT_PRIV_INCLUDEDIRS +=   host/bluedroid/bta/include                   \
                                 host/bluedroid/stack/include                 \
                                 host/bluedroid/utils/include                 \
                                 host/bluedroid/common/include                \
+                                host/bluedroid/external/libldacdec
 
 COMPONENT_ADD_INCLUDEDIRS +=    host/bluedroid/api/include/api       \
 
@@ -144,6 +145,14 @@ host/bluedroid/stack/btm/btm_sec.o: CFLAGS += -Wno-unused-const-variable
 host/bluedroid/stack/smp/smp_keys.o: CFLAGS += -Wno-unused-const-variable
 
 COMPONENT_SRCDIRS += common/btc/profile/esp/blufi/bluedroid_host
+
+ifdef CONFIG_BT_A2DP_LDAC_DECODER
+COMPONENT_PRIV_INCLUDEDIRS += host/bluedroid/external/libldacdec
+COMPONENT_SRCDIRS += host/bluedroid/external/libldacdec
+endif
+ifdef CONFIG_BT_A2DP_APTX_DECODER
+COMPONENT_ADD_LDFLAGS     += -lfreeaptx -L $(COMPONENT_PATH)/host/bluedroid/external/libfreeaptx/
+endif
 
 ifdef CONFIG_BLE_MESH
 
