@@ -80,7 +80,7 @@ bool a2dp_ldac_decoder_decode_packet(BT_HDR* p_buf, unsigned char* buf, size_t b
     }
 
     a2dp_ldac_decoder_cb.decode_callback((uint8_t*)buf, dst_size);
-    return true;    
+    return true;
 }
 
 #endif /* defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE) */

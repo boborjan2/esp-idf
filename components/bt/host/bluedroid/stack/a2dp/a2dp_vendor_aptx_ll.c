@@ -12,9 +12,10 @@
 #include "stack/a2dp_vendor_aptx_ll_constants.h"
 #include "stack/a2dp_vendor_aptx_decoder.h"
 
-#if (defined(A2D_INCLUDED) && A2D_INCLUDED == TRUE)
+#if (defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE)
 
 /* aptX-LL Source codec capabilities */
+#if 0
 static const tA2DP_APTX_LL_CIE a2dp_aptx_ll_source_caps = {
     A2DP_APTX_LL_VENDOR_ID,          /* vendorId */
     A2DP_APTX_LL_CODEC_ID_BLUETOOTH, /* codecId */
@@ -25,6 +26,7 @@ static const tA2DP_APTX_LL_CIE a2dp_aptx_ll_source_caps = {
     0,    /* has_new_caps */
     BTAV_A2DP_CODEC_BITS_PER_SAMPLE_16 /* bits_per_sample */
 };
+#endif
 
 /* aptX-LL Sink codec capabilities */
 static const tA2DP_APTX_LL_CIE a2dp_aptx_ll_sink_caps = {
@@ -307,4 +309,4 @@ const tA2DP_DECODER_INTERFACE* A2DP_GetVendorDecoderInterfaceAptxLl(
   return &a2dp_decoder_interface_aptx_ll;
 }
 
-#endif /* #if (defined(A2D_INCLUDED) && A2D_INCLUDED == TRUE) */
+#endif /* #if (defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */

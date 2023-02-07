@@ -16,6 +16,7 @@
 #if (defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE)
 
 /* aptX Source codec capabilities */
+#if 0
 static const tA2DP_APTX_CIE a2dp_aptx_source_caps = {
     A2DP_APTX_VENDOR_ID,                                       /* vendorId */
     A2DP_APTX_CODEC_ID_BLUETOOTH,                              /* codecId */
@@ -25,6 +26,7 @@ static const tA2DP_APTX_CIE a2dp_aptx_source_caps = {
     A2DP_APTX_FUTURE_2,                                        /* future2 */
     BTAV_A2DP_CODEC_BITS_PER_SAMPLE_16 /* bits_per_sample */
 };
+#endif
 
 /* aptX Sink codec capabilities */
 static const tA2DP_APTX_CIE a2dp_aptx_sink_caps = {

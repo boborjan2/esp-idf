@@ -14,8 +14,9 @@
 #include "stack/a2dp_vendor_aptx_hd.h"
 #include "stack/a2dp_vendor_aptx_hd_constants.h"
 
-#if (defined(A2D_INCLUDED) && A2D_INCLUDED == TRUE)
+#if (defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE)
 
+#if 0
 /* aptX-HD Source codec capabilities */
 static const tA2DP_APTX_HD_CIE a2dp_aptx_hd_source_caps = {
     A2DP_APTX_HD_VENDOR_ID,          /* vendorId */
@@ -29,6 +30,7 @@ static const tA2DP_APTX_HD_CIE a2dp_aptx_hd_source_caps = {
     A2DP_APTX_HD_ACL_SPRINT_RESERVED3, /* acl_sprint_reserved3 */
     BTAV_A2DP_CODEC_BITS_PER_SAMPLE_16 /* bits_per_sample */
 };
+#endif
 
 /* aptX-HD Sink codec capabilities */
 static const tA2DP_APTX_HD_CIE a2dp_aptx_hd_sink_caps = {
@@ -318,4 +320,4 @@ const tA2DP_DECODER_INTERFACE* A2DP_GetVendorDecoderInterfaceAptxHd(
   return &a2dp_decoder_interface_aptx_hd;
 }
 
-#endif /* #if (defined(A2D_INCLUDED) && A2D_INCLUDED == TRUE) */
+#endif /* #if (defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
