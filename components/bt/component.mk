@@ -83,6 +83,7 @@ COMPONENT_PRIV_INCLUDEDIRS +=   host/bluedroid/bta/include                   \
                                 host/bluedroid/external/libldacdec
 
 COMPONENT_ADD_INCLUDEDIRS +=    host/bluedroid/api/include/api       \
+                                host/bluedroid/stack/include
 
 COMPONENT_SRCDIRS +=    host/bluedroid/bta/dm                      \
                         host/bluedroid/bta/gatt                    \
