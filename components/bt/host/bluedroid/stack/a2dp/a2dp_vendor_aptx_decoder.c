@@ -130,18 +130,21 @@ bool a2dp_aptx_decoder_decode_packet(BT_HDR* p_buf, unsigned char* buf, size_t b
 
 void a2dp_aptx_decoder_configure(const uint8_t* p_codec_info) {
     struct aptx_context* decoder_context = a2dp_aptx_decoder_cb.decoder_context;
-    btav_a2dp_codec_index_t index = A2DP_SinkCodecIndex(p_codec_info);
 
     if (!decoder_context) {
         LOG_ERROR("%s: decoder not initialized", __func__);
         return;
     }
 
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
+    btav_a2dp_codec_index_t index = A2DP_SinkCodecIndex(p_codec_info);
     if (index == BTAV_A2DP_CODEC_INDEX_SINK_APTX_HD) {
         a2dp_aptx_decoder_cb.aptx_type = APTX_HD;
     } else if (index == BTAV_A2DP_CODEC_INDEX_SINK_APTX_LL) {
         a2dp_aptx_decoder_cb.aptx_type = APTX_LL;
-    } else {
+    } else
+#endif
+    {
         a2dp_aptx_decoder_cb.aptx_type = APTX_STANDARD;
     }
 

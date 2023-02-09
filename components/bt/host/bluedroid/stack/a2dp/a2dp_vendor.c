@@ -40,6 +40,8 @@ tA2D_STATUS A2DP_VendorParseInfo(uint8_t* p_ie, const uint8_t* p_codec_info,
       codec_id == A2DP_APTX_CODEC_ID_BLUETOOTH) {
     return A2DP_ParseInfoAptx((tA2DP_APTX_CIE*)p_ie, p_codec_info, is_capability);
   }
+#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
   // Check for aptX-HD
   if (vendor_id == A2DP_APTX_HD_VENDOR_ID &&
       codec_id == A2DP_APTX_HD_CODEC_ID_BLUETOOTH) {
@@ -50,7 +52,7 @@ tA2D_STATUS A2DP_VendorParseInfo(uint8_t* p_ie, const uint8_t* p_codec_info,
       codec_id == A2DP_APTX_LL_CODEC_ID_BLUETOOTH) {
     return A2DP_ParseInfoAptxLl((tA2DP_APTX_LL_CIE*)p_ie, p_codec_info, is_capability);
   }
-#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif
 
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
   // Check for LDAC
@@ -77,6 +79,8 @@ bool A2DP_IsVendorPeerSinkCodecValid(const uint8_t* p_codec_info) {
       codec_id == A2DP_APTX_CODEC_ID_BLUETOOTH) {
     return A2DP_IsVendorPeerSinkCodecValidAptx(p_codec_info);
   }
+#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
   // Check for aptX-HD
   if (vendor_id == A2DP_APTX_HD_VENDOR_ID &&
       codec_id == A2DP_APTX_HD_CODEC_ID_BLUETOOTH) {
@@ -87,7 +91,7 @@ bool A2DP_IsVendorPeerSinkCodecValid(const uint8_t* p_codec_info) {
       codec_id == A2DP_APTX_LL_CODEC_ID_BLUETOOTH) {
     return A2DP_IsVendorPeerSinkCodecValidAptxLl(p_codec_info);
   }
-#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif
 
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
   // Check for LDAC
@@ -127,6 +131,8 @@ bool A2DP_IsVendorPeerSourceCodecSupported(const uint8_t* p_codec_info) {
       codec_id == A2DP_APTX_CODEC_ID_BLUETOOTH) {
     return A2DP_IsVendorPeerSourceCodecValidAptx(p_codec_info);
   }
+#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
   // Check for aptX-HD
   if (vendor_id == A2DP_APTX_HD_VENDOR_ID &&
       codec_id == A2DP_APTX_HD_CODEC_ID_BLUETOOTH) {
@@ -137,7 +143,7 @@ bool A2DP_IsVendorPeerSourceCodecSupported(const uint8_t* p_codec_info) {
       codec_id == A2DP_APTX_LL_CODEC_ID_BLUETOOTH) {
     return A2DP_IsVendorPeerSourceCodecValidAptxLl(p_codec_info);
   }
-#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif
 
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
   // Check for LDAC
@@ -185,6 +191,8 @@ btav_a2dp_codec_index_t A2DP_VendorSinkCodecIndex(
       codec_id == A2DP_APTX_CODEC_ID_BLUETOOTH) {
     return A2DP_VendorSinkCodecIndexAptx(p_codec_info);
   }
+#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
   // Check for aptX-HD
   if (vendor_id == A2DP_APTX_HD_VENDOR_ID &&
       codec_id == A2DP_APTX_HD_CODEC_ID_BLUETOOTH) {
@@ -195,7 +203,7 @@ btav_a2dp_codec_index_t A2DP_VendorSinkCodecIndex(
       codec_id == A2DP_APTX_LL_CODEC_ID_BLUETOOTH) {
     return A2DP_VendorSinkCodecIndexAptxLl(p_codec_info);
   }
-#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif
 
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
   // Check for LDAC
@@ -223,6 +231,8 @@ btav_a2dp_codec_index_t A2DP_VendorSourceCodecIndex(
       codec_id == A2DP_APTX_CODEC_ID_BLUETOOTH) {
     return A2DP_VendorSourceCodecIndexAptx(p_codec_info);
   }
+#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
   // Check for aptX-HD
   if (vendor_id == A2DP_APTX_HD_VENDOR_ID &&
       codec_id == A2DP_APTX_HD_CODEC_ID_BLUETOOTH) {
@@ -233,7 +243,7 @@ btav_a2dp_codec_index_t A2DP_VendorSourceCodecIndex(
       codec_id == A2DP_APTX_LL_CODEC_ID_BLUETOOTH) {
     return A2DP_VendorSourceCodecIndexAptxLl(p_codec_info);
   }
-#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif
 
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
   // Check for LDAC
@@ -257,6 +267,8 @@ bool A2DP_VendorInitCodecConfig(btav_a2dp_codec_index_t codec_index, UINT8 *p_re
   if (A2DP_VendorInitCodecConfigAptx(codec_index, p_result)) {
     return true;
   }
+#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
   // Check for aptX-HD
   if (A2DP_VendorInitCodecConfigAptxHd(codec_index, p_result)) {
     return true;
@@ -265,7 +277,7 @@ bool A2DP_VendorInitCodecConfig(btav_a2dp_codec_index_t codec_index, UINT8 *p_re
   if (A2DP_VendorInitCodecConfigAptxLl(codec_index, p_result)) {
     return true;
   }
-#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif
 
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
   // Check for LDAC
@@ -291,6 +303,8 @@ bool A2DP_VendorBuildCodecConfig(UINT8 *p_src_cap, UINT8 *p_result) {
       codec_id == A2DP_APTX_CODEC_ID_BLUETOOTH) {
     return A2DP_VendorBuildCodecConfigAptx(p_src_cap, p_result);
   }
+#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
   // Check for aptX-HD
   if (vendor_id == A2DP_APTX_HD_VENDOR_ID &&
       codec_id == A2DP_APTX_HD_CODEC_ID_BLUETOOTH) {
@@ -301,7 +315,7 @@ bool A2DP_VendorBuildCodecConfig(UINT8 *p_src_cap, UINT8 *p_result) {
       codec_id == A2DP_APTX_LL_CODEC_ID_BLUETOOTH) {
     return A2DP_VendorBuildCodecConfigAptxLl(p_src_cap, p_result);
   }
-#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif
 
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
   // Check for LDAC
@@ -328,6 +342,8 @@ const char* A2DP_VendorCodecName(const uint8_t* p_codec_info) {
       codec_id == A2DP_APTX_CODEC_ID_BLUETOOTH) {
     return A2DP_VendorCodecNameAptx(p_codec_info);
   }
+#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
   // Check for aptX-HD
   if (vendor_id == A2DP_APTX_HD_VENDOR_ID &&
       codec_id == A2DP_APTX_HD_CODEC_ID_BLUETOOTH) {
@@ -338,7 +354,7 @@ const char* A2DP_VendorCodecName(const uint8_t* p_codec_info) {
       codec_id == A2DP_APTX_LL_CODEC_ID_BLUETOOTH) {
     return A2DP_VendorCodecNameAptxLl(p_codec_info);
   }
-#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif
 
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
   // Check for LDAC
@@ -378,6 +394,8 @@ bool A2DP_VendorCodecTypeEquals(const uint8_t* p_codec_info_a,
       codec_id_a == A2DP_APTX_CODEC_ID_BLUETOOTH) {
     return A2DP_VendorCodecTypeEqualsAptx(p_codec_info_a, p_codec_info_b);
   }
+#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
   // Check for aptX-HD
   if (vendor_id_a == A2DP_APTX_HD_VENDOR_ID &&
       codec_id_a == A2DP_APTX_HD_CODEC_ID_BLUETOOTH) {
@@ -388,7 +406,7 @@ bool A2DP_VendorCodecTypeEquals(const uint8_t* p_codec_info_a,
       codec_id_a == A2DP_APTX_LL_CODEC_ID_BLUETOOTH) {
     return A2DP_VendorCodecTypeEqualsAptxLl(p_codec_info_a, p_codec_info_b);
   }
-#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif
 
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
   // Check for LDAC
@@ -418,6 +436,8 @@ const tA2DP_DECODER_INTERFACE* A2DP_GetVendorDecoderInterface(
       codec_id == A2DP_APTX_CODEC_ID_BLUETOOTH) {
     return A2DP_GetVendorDecoderInterfaceAptx(p_codec_info);
   }
+#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
   if (vendor_id == A2DP_APTX_HD_VENDOR_ID &&
       codec_id == A2DP_APTX_HD_CODEC_ID_BLUETOOTH) {
     return A2DP_GetVendorDecoderInterfaceAptxHd(p_codec_info);
@@ -426,7 +446,7 @@ const tA2DP_DECODER_INTERFACE* A2DP_GetVendorDecoderInterface(
       codec_id == A2DP_APTX_LL_CODEC_ID_BLUETOOTH) {
     return A2DP_GetVendorDecoderInterfaceAptxLl(p_codec_info);
   }
-#endif /* defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif
 
 #if (defined(LDAC_DEC_INCLUDED) && LDAC_DEC_INCLUDED == TRUE)
   // Check for LDAC

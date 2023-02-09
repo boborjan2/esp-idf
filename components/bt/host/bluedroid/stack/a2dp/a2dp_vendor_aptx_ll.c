@@ -12,7 +12,7 @@
 #include "stack/a2dp_vendor_aptx_ll_constants.h"
 #include "stack/a2dp_vendor_aptx_decoder.h"
 
-#if (defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE)
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
 
 /* aptX-LL Source codec capabilities */
 #if 0
@@ -309,4 +309,4 @@ const tA2DP_DECODER_INTERFACE* A2DP_GetVendorDecoderInterfaceAptxLl(
   return &a2dp_decoder_interface_aptx_ll;
 }
 
-#endif /* #if (defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif /* #if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE) */

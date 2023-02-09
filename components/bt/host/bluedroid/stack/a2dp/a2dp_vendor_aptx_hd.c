@@ -14,7 +14,7 @@
 #include "stack/a2dp_vendor_aptx_hd.h"
 #include "stack/a2dp_vendor_aptx_hd_constants.h"
 
-#if (defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE)
+#if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE)
 
 #if 0
 /* aptX-HD Source codec capabilities */
@@ -320,4 +320,4 @@ const tA2DP_DECODER_INTERFACE* A2DP_GetVendorDecoderInterfaceAptxHd(
   return &a2dp_decoder_interface_aptx_hd;
 }
 
-#endif /* #if (defined(APTX_DEC_INCLUDED) && APTX_DEC_INCLUDED == TRUE) */
+#endif /* #if (defined(APTX_xx_DEC_INCLUDED) && APTX_xx_DEC_INCLUDED == TRUE) */
