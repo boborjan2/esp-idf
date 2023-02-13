@@ -446,7 +446,7 @@ static void btc_a2dp_sink_handle_inc_media(BT_HDR *p_msg)
     if (!btc_a2dp_control_get_datachnl_stat()) {
         return;
     }
-
+#if 0
     if (p_msg->layer_specific != a2dp_sink_local_param.media_pkt_seq_num.expected_seq_num) {
         /* Because the sequence number of some devices is not recounted */
         if (!a2dp_sink_local_param.media_pkt_seq_num.seq_num_recount ||
@@ -458,7 +458,7 @@ static void btc_a2dp_sink_handle_inc_media(BT_HDR *p_msg)
     }
     a2dp_sink_local_param.media_pkt_seq_num.expected_seq_num  = p_msg->layer_specific + 1;
     a2dp_sink_local_param.media_pkt_seq_num.seq_num_recount = false;
-
+#endif
     if (a2dp_sink_local_param.decoder->decode_packet_header) {
         a2dp_sink_local_param.decoder->decode_packet_header(p_msg);
     }
