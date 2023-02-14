@@ -168,7 +168,8 @@ SOC_RESERVE_MEMORY_REGION(RTC_RETAIN_MEM_ADDR, RTC_RETAIN_MEM_ADDR + sizeof(rtc_
 #endif
 
 static uint32_t rtc_retain_mem_size(void) {
-#ifdef CONFIG_BOOTLOADER_CUSTOM_RESERVE_RTC
+/* !!to keep compatibility with previous bootloaders */
+#if 0 && defined(CONFIG_BOOTLOADER_CUSTOM_RESERVE_RTC)
     /* A custom memory has been reserved by the user, do not consider this memory into CRC calculation as it may change without
      * the have the user updating the CRC. Return the offset of the custom field, which is equivalent to size of the structure
      * minus the size of everything after (including) `custom` */
