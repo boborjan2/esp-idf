@@ -54,8 +54,9 @@ typedef struct esp_partition_iterator_opaque_ {
 
 static esp_partition_iterator_opaque_t* iterator_create(esp_partition_type_t type, esp_partition_subtype_t subtype, const char* label);
 static esp_err_t load_partitions(void);
-static esp_err_t ensure_partitions_loaded(void);
+esp_err_t ensure_partitions_loaded(uint32_t address);
 
+static uint32_t partition_table_address = ESP_PARTITION_TABLE_OFFSET;
 
 static const char* TAG = "partition";
 static SLIST_HEAD(partition_list_head_, partition_list_item_) s_partition_list =
@@ -63,14 +64,17 @@ static SLIST_HEAD(partition_list_head_, partition_list_item_) s_partition_list =
 static _lock_t s_partition_list_lock;
 
 
-static esp_err_t ensure_partitions_loaded(void)
+esp_err_t ensure_partitions_loaded(uint32_t address)
 {
     esp_err_t err = ESP_OK;
     if (SLIST_EMPTY(&s_partition_list)) {
         // only lock if list is empty (and check again after acquiring lock)
         _lock_acquire(&s_partition_list_lock);
         if (SLIST_EMPTY(&s_partition_list)) {
-            ESP_LOGD(TAG, "Loading the partition table");
+            if(address) {
+                partition_table_address = address;
+            }
+            ESP_LOGI(TAG, "Loading the partition table from %08x", partition_table_address);
             err = load_partitions();
             if (err != ESP_OK) {
                 ESP_LOGE(TAG, "load_partitions returned 0x%x", err);
@@ -84,7 +88,7 @@ static esp_err_t ensure_partitions_loaded(void)
 esp_partition_iterator_t esp_partition_find(esp_partition_type_t type,
         esp_partition_subtype_t subtype, const char* label)
 {
-    if (ensure_partitions_loaded() != ESP_OK) {
+    if (ensure_partitions_loaded(0) != ESP_OK) {
         return NULL;
     }
     // Searching for a specific subtype without specifying the type doesn't make
@@ -181,13 +185,13 @@ static esp_err_t load_partitions(void)
 #endif
 
     // map 64kB block where partition table is located
-    esp_err_t err = spi_flash_mmap(ESP_PARTITION_TABLE_OFFSET & 0xffff0000,
+    esp_err_t err = spi_flash_mmap(partition_table_address & 0xffff0000,
                                    SPI_FLASH_SEC_SIZE, SPI_FLASH_MMAP_DATA, (const void **)&p_start, &handle);
     if (err != ESP_OK) {
         return err;
     }
     // calculate partition address within mmap-ed region
-    p_start += (ESP_PARTITION_TABLE_OFFSET & 0xffff);
+    p_start += (partition_table_address & 0xffff);
     p_end = p_start + SPI_FLASH_SEC_SIZE;
 
     for(const uint8_t *p_entry = p_start; p_entry < p_end; p_entry += sizeof(esp_partition_info_t)) {
@@ -321,7 +325,7 @@ esp_err_t esp_partition_register_external(esp_flash_t* flash_chip, size_t offset
         return ESP_ERR_INVALID_SIZE;
     }
 
-    esp_err_t err = ensure_partitions_loaded();
+    esp_err_t err = ensure_partitions_loaded(0);
     if (err != ESP_OK) {
         return err;
     }
@@ -600,7 +604,7 @@ bool esp_partition_check_identity(const esp_partition_t *partition_1, const esp_
 bool esp_partition_main_flash_region_safe(size_t addr, size_t size)
 {
     bool result = true;
-    if (addr <= ESP_PARTITION_TABLE_OFFSET + ESP_PARTITION_TABLE_MAX_LEN) {
+    if (addr <= partition_table_address + ESP_PARTITION_TABLE_MAX_LEN) {
         return false;
     }
     const esp_partition_t *p = esp_ota_get_running_partition();
