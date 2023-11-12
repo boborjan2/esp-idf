@@ -102,6 +102,8 @@ static bool is_partition_encrypted(bool encryption_config, esp_partition_type_t 
 #endif
 }
 
+static uint32_t partition_table_address = ESP_PARTITION_TABLE_OFFSET;
+
 // Create linked list of partition_list_item_t structures.
 // This function is called only once, with s_partition_list_lock taken.
 static esp_err_t load_partitions(void)
@@ -125,8 +127,8 @@ static esp_err_t load_partitions(void)
     esp_rom_md5_init(&context);
 #endif
 
-    uint32_t partition_align_pg_size = (ESP_PARTITION_TABLE_OFFSET) & ~(MMU_PAGE_SIZE - 1);
-    uint32_t partition_pad = ESP_PARTITION_TABLE_OFFSET - partition_align_pg_size;
+    uint32_t partition_align_pg_size = (partition_table_address) & ~(MMU_PAGE_SIZE - 1);
+    uint32_t partition_pad = partition_table_address - partition_align_pg_size;
 
 #if CONFIG_IDF_TARGET_LINUX
     esp_err_t err = esp_partition_file_mmap(&p_start);
@@ -266,14 +268,17 @@ void esp_partition_unload_all(void)
     assert(SLIST_EMPTY(&s_partition_list));
 }
 
-static esp_err_t ensure_partitions_loaded(void)
+esp_err_t ensure_partitions_loaded(uint32_t address)
 {
     esp_err_t err = ESP_OK;
     if (SLIST_EMPTY(&s_partition_list)) {
         // only lock if list is empty (and check again after acquiring lock)
         _lock_acquire(&s_partition_list_lock);
         if (SLIST_EMPTY(&s_partition_list)) {
-            ESP_LOGV(TAG, "Loading the partition table");
+            if(address) {
+                partition_table_address = address;
+            }
+            ESP_LOGI(TAG, "Loading the partition table from %08lx", partition_table_address);
             err = load_partitions();
             if (err != ESP_OK) {
                 ESP_LOGE(TAG, "load_partitions returned 0x%x", err);
@@ -303,7 +308,7 @@ static esp_partition_iterator_opaque_t *iterator_create(esp_partition_type_t typ
 esp_partition_iterator_t esp_partition_find(esp_partition_type_t type,
         esp_partition_subtype_t subtype, const char *label)
 {
-    if (ensure_partitions_loaded() != ESP_OK) {
+    if (ensure_partitions_loaded(0) != ESP_OK) {
         return NULL;
     }
     // Searching for a specific subtype without specifying the type doesn't make
@@ -420,7 +425,7 @@ esp_err_t esp_partition_register_external(esp_flash_t *flash_chip, size_t offset
     }
 #endif // CONFIG_IDF_TARGET_LINUX
 
-    esp_err_t err = ensure_partitions_loaded();
+    esp_err_t err = ensure_partitions_loaded(0);
     if (err != ESP_OK) {
         return err;
     }
