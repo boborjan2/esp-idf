@@ -50,6 +50,17 @@ esp_rom_spiflash_result_t IRAM_ATTR spi_flash_write_encrypted_chip(size_t dest_a
     */
     uint8_t encrypt_buf[32] __attribute__((aligned(4)));
     uint32_t row_size;
+    uint8_t pre_buf[16];
+    uint8_t post_buf[16];
+
+    if((dest_addr % 32) != 0) {
+        spi_flash_read_encrypted(dest_addr - 16, pre_buf, 16);
+    }
+    if(((dest_addr + size) % 32) != 0) {
+        spi_flash_read_encrypted(dest_addr + size, post_buf, 16);
+    }
+
+    spi_flash_guard_start();
     for (size_t i = 0; i < size; i += row_size) {
         uint32_t row_addr = dest_addr + i;
         if (i == 0 && (row_addr % 32) != 0) {
@@ -59,28 +70,27 @@ esp_rom_spiflash_result_t IRAM_ATTR spi_flash_write_encrypted_chip(size_t dest_a
             /* copy to second block in buffer */
             memcpy(encrypt_buf + 16, ssrc + i, 16);
             /* decrypt the first block from flash, will reencrypt to same bytes */
-            spi_flash_read_encrypted(row_addr, encrypt_buf, 16);
+            memcpy(encrypt_buf, pre_buf, 16);
         } else if (size - i == 16) {
             /* 16 bytes left, is first block of a 32 byte row */
             row_size = 16;
             /* copy to first block in buffer */
             memcpy(encrypt_buf, ssrc + i, 16);
             /* decrypt the second block from flash, will reencrypt to same bytes */
-            spi_flash_read_encrypted(row_addr + 16, encrypt_buf + 16, 16);
+            memcpy(encrypt_buf + 16, post_buf, 16);
         } else {
             /* Writing a full 32 byte row (2 blocks) */
             row_size = 32;
             memcpy(encrypt_buf, ssrc + i, 32);
         }
 
-        spi_flash_guard_start();
         flash_rom_init();
         rc = esp_rom_spiflash_write_encrypted(row_addr, (uint32_t *)encrypt_buf, 32);
-        spi_flash_guard_end();
         if (rc != ESP_ROM_SPIFLASH_RESULT_OK) {
             break;
         }
     }
+    spi_flash_guard_end();
     bzero(encrypt_buf, sizeof(encrypt_buf));
 
     return rc;
