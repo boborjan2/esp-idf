@@ -311,14 +311,17 @@ static esp_err_t encrypt_partition(int index, const esp_partition_info_t *partit
 {
     esp_err_t err;
     bool should_encrypt = (partition->flags & PART_FLAG_ENCRYPTED);
+    uint32_t size = partition->pos.size;
 
     if (partition->type == PART_TYPE_APP) {
         /* check if the partition holds a valid unencrypted app */
-        esp_image_metadata_t data_ignored;
+        esp_image_metadata_t metadata;
         err = esp_image_verify(ESP_IMAGE_VERIFY,
                                &partition->pos,
-                               &data_ignored);
-        should_encrypt = (err == ESP_OK);
+                               &metadata);
+        if((should_encrypt = (err == ESP_OK))) {
+            size = metadata.image_len;
+        }
     } else if ((partition->type == PART_TYPE_DATA && partition->subtype == PART_SUBTYPE_DATA_OTA)
                 || (partition->type == PART_TYPE_DATA && partition->subtype == PART_SUBTYPE_DATA_NVS_KEYS)) {
         /* check if we have ota data partition and the partition should be encrypted unconditionally */
@@ -329,9 +332,9 @@ static esp_err_t encrypt_partition(int index, const esp_partition_info_t *partit
         return ESP_OK;
     } else {
         /* should_encrypt */
-        ESP_LOGI(TAG, "Encrypting partition %d at offset 0x%x (length 0x%x)...", index, partition->pos.offset, partition->pos.size);
+        ESP_LOGI(TAG, "Encrypting partition %d at offset 0x%x (length 0x%x)...", index, partition->pos.offset, size);
 
-        err = esp_flash_encrypt_region(partition->pos.offset, partition->pos.size);
+        err = esp_flash_encrypt_region(partition->pos.offset, size);
         ESP_LOGI(TAG, "Done encrypting");
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "Failed to encrypt partition %d", index);
