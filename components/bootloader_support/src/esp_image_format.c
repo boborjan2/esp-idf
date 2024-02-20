@@ -164,7 +164,12 @@ static esp_err_t image_load(esp_image_load_mode_t mode, const esp_partition_pos_
         // This is done to allow for breakpoints in Flash.
         bool do_verify_sig = !esp_cpu_in_ocd_debug_mode();
 #else // CONFIG_SECURE_BOOT
+#if !defined(BOOTLOADER_BUILD)
+        // only verify signature in application if bootloader has it enabled
+        bool do_verify_sig = esp_secure_boot_enabled();
+#else
         bool do_verify_sig = true;
+#endif
 #endif // end checking for JTAG
         if (do_verify_sig) {
             err = verify_secure_boot_signature(sha_handle, data, image_digest, verified_digest);
