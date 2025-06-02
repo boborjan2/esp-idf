@@ -384,8 +384,9 @@ static inline void spi_ll_slave_set_mode(spi_dev_t *hw, const int mode, bool dma
         hw->ctrl2.mosi_delay_mode = 1;
         hw->ctrl2.mosi_delay_num = 2;
     } else if (mode == 3) {
-        hw->pin.ck_idle_edge = 0;
-        hw->user.ck_i_edge = 0;
+        hw->pin.ck_idle_edge = 0; // master mode only
+        hw->user.ck_i_edge = 1;
+//        hw->user.ck_i_edge = 0;
         hw->ctrl2.miso_delay_mode = 1;
         hw->ctrl2.miso_delay_num = 0;
         hw->ctrl2.mosi_delay_mode = 0;
