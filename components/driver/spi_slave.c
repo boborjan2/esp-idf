@@ -298,6 +298,17 @@ esp_err_t SPI_SLAVE_ATTR spi_slave_queue_trans(spi_host_device_t host, const spi
     return ESP_OK;
 }
 
+/* 5.5-ben mar van ilyen */
+esp_err_t SPI_SLAVE_ISR_ATTR spi_slave_queue_trans_isr(spi_host_device_t host, const spi_slave_transaction_t *trans_desc)
+{
+    BaseType_t r;
+
+    r = xQueueSendFromISR(spihost[host]->trans_queue, (void *)&trans_desc, NULL);
+    if (!r) return ESP_ERR_NO_MEM;
+    esp_intr_enable(spihost[host]->intr);
+    return ESP_OK;
+}
+
 
 esp_err_t SPI_SLAVE_ATTR spi_slave_get_trans_result(spi_host_device_t host, spi_slave_transaction_t **trans_desc, TickType_t ticks_to_wait)
 {
