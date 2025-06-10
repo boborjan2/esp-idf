@@ -168,6 +168,7 @@ esp_err_t spi_slave_disable(spi_host_device_t host);
  *         - ESP_OK                on success
  */
 esp_err_t spi_slave_queue_trans(spi_host_device_t host, const spi_slave_transaction_t *trans_desc, TickType_t ticks_to_wait);
+esp_err_t spi_slave_queue_trans_isr(spi_host_device_t host, const spi_slave_transaction_t *trans_desc);
 
 /**
  * @brief Get the result of a SPI transaction queued earlier
