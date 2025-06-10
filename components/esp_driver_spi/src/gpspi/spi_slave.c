@@ -567,6 +567,7 @@ esp_err_t SPI_SLAVE_ISR_ATTR spi_slave_queue_trans_isr(spi_host_device_t host, c
     if (!r) {
         return ESP_ERR_NO_MEM;
     }
+    esp_intr_enable(spihost[host]->intr);
     if (do_yield) {
         portYIELD_FROM_ISR();
     }
