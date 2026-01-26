@@ -282,6 +282,9 @@ esp_err_t i2s_channel_preload_data(i2s_chan_handle_t tx_handle, const void *src,
  */
 esp_err_t i2s_channel_tune_rate(i2s_chan_handle_t handle, const i2s_tuning_config_t *tune_cfg, i2s_tuning_info_t *tune_info);
 
+esp_err_t i2s_get_dmabuf(i2s_chan_handle_t handle, void **dest, size_t *size, uint32_t timeout_ms);
+esp_err_t i2s_put_dmabuf(i2s_chan_handle_t handle, size_t size);
+
 #ifdef __cplusplus
 }
 #endif
