@@ -1442,6 +1442,62 @@ esp_err_t i2s_channel_read(i2s_chan_handle_t handle, void *dest, size_t size, si
     return ret;
 }
 
+esp_err_t i2s_get_dmabuf(i2s_chan_handle_t handle, void **dest, size_t *size, uint32_t timeout_ms)
+{
+    ESP_RETURN_ON_FALSE(xSemaphoreTake(handle->binary, pdMS_TO_TICKS(timeout_ms)) == pdTRUE, ESP_ERR_INVALID_STATE, TAG, "The channel is not enabled");
+    if (handle->dma.rw_pos == handle->dma.buf_size || handle->dma.curr_ptr == NULL || uxQueueSpacesAvailable(handle->msg_queue) <= (handle->dma.desc_num > 2 ? 1 : 0)) {
+        if (xQueueReceive(handle->msg_queue, &handle->dma.curr_ptr, pdMS_TO_TICKS(timeout_ms)) == pdFALSE) {
+            *size = 0;
+            goto out;
+        }
+        handle->dma.rw_pos = 0;
+    }
+    *dest = (char*)handle->dma.curr_ptr + handle->dma.rw_pos;
+    *size = handle->dma.buf_size - handle->dma.rw_pos;
+    return ESP_OK;
+
+out:
+    xSemaphoreGive(handle->binary);
+    return ESP_OK;
+} /* i2s_get_dmabuf */
+
+esp_err_t i2s_put_dmabuf(i2s_chan_handle_t handle, size_t size)
+{
+    handle->dma.rw_pos += size;
+    xSemaphoreGive(handle->binary);
+    return ESP_OK;
+} /* i2s_put_dmabuf */
+#if 0
+esp_err_t i2s_get_readbuf(i2s_chan_handle_t handle, void **dest, size_t *size, uint32_t timeout_ms)
+{
+    I2S_NULL_POINTER_CHECK(TAG, handle);
+    ESP_RETURN_ON_FALSE(handle->dir == I2S_DIR_RX, ESP_ERR_INVALID_ARG, TAG, "this channel is not rx channel");
+
+    return i2s_get_dmabuf(handle, dest, size, timeout_ms);
+}
+
+esp_err_t i2s_put_readbuf(i2s_chan_handle_t handle, size_t size)
+{
+    I2S_NULL_POINTER_CHECK(TAG, handle);
+
+    return i2s_put_dmabuf(handle, size);
+}
+
+esp_err_t i2s_get_writebuf(i2s_chan_handle_t handle, void **dest, size_t *size, uint32_t timeout_ms)
+{
+    I2S_NULL_POINTER_CHECK(TAG, handle);
+    ESP_RETURN_ON_FALSE(handle->dir == I2S_DIR_TX, ESP_ERR_INVALID_ARG, TAG, "this channel is not tx channel");
+
+    return i2s_get_dmabuf(handle, dest, size, timeout_ms);
+}
+
+esp_err_t i2s_put_writebuf(i2s_chan_handle_t handle, size_t size)
+{
+    I2S_NULL_POINTER_CHECK(TAG, handle);
+
+    return i2s_put_dmabuf(handle, size);
+}
+#endif
 esp_err_t i2s_channel_tune_rate(i2s_chan_handle_t handle, const i2s_tuning_config_t *tune_cfg, i2s_tuning_info_t *tune_info)
 {
     /** We tune the sample rate via the MCLK clock.
