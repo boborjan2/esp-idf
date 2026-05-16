@@ -219,6 +219,9 @@ BOOLEAN l2c_link_hci_conn_comp (UINT8 status, UINT16 handle, BD_ADDR p_bda)
 
         btu_stop_timer (&p_lcb->timer_entry);
 #if (CLASSIC_BT_INCLUDED == TRUE)
+        /* Link came up successfully; reset host-driven Create_Connection
+         * retry counter so a future failure on this BDA starts fresh. */
+        p_lcb->br_edr_create_con_retries = 0;
         /* For all channels, send the event through their FSMs */
         for (p_ccb = p_lcb->ccb_queue.p_first_ccb; p_ccb; p_ccb = p_ccb->p_next_ccb) {
             l2c_csm_execute (p_ccb, L2CEVT_LP_CONNECT_CFM, &ci);
@@ -255,12 +258,58 @@ BOOLEAN l2c_link_hci_conn_comp (UINT8 status, UINT16 handle, BD_ADDR p_bda)
         if (p_lcb->ccb_queue.p_first_ccb == NULL) {
             l2cu_release_lcb (p_lcb);
         } else {                          /* there are any CCBs remaining */
-            if (ci.status == HCI_ERR_CONNECTION_EXISTS) {
-                /* we are in collision situation, wait for connection request from controller */
-                p_lcb->link_state = LST_CONNECTING;
+#if (CLASSIC_BT_INCLUDED == TRUE)
+            /* Controller reported a non-success Connection Complete while
+             * upper-layer CCBs are still waiting on this link.  Drive the
+             * retry from host side (the spec does not require the controller
+             * to emit a second Connection Complete on collision and many
+             * controllers do not), but cap the number of retries so a stuck
+             * controller cannot keep us looping forever. */
+            if (++p_lcb->br_edr_create_con_retries <= L2CAP_CONN_EXIST_MAX_RETRY) {
+                L2CAP_TRACE_WARNING("L2CAP - Conn Comp status: 0x%02x, retry "
+                                    "Create_Connection (%u/%u) in %u sec",
+                                    status,
+                                    p_lcb->br_edr_create_con_retries,
+                                    L2CAP_CONN_EXIST_MAX_RETRY,
+                                    L2C_LP_CONN_RETRY_DELAY_TOUT);
+                /* The Create_Connection-related 60s timer attached to
+                 * timer_entry is now stale (we already got the failure
+                 * Connection Complete).  Stop it so it cannot race the
+                 * upcoming retry attempt; l2cu_create_conn_after_switch()
+                 * will rearm it when the retry actually goes out. */
+                btu_stop_timer(&p_lcb->timer_entry);
+                /* Schedule the retry after a short back-off so the controller
+                 * (and the peer) have time to settle from the previous
+                 * collision/error before we hammer it again. */
+                p_lcb->retry_timer_entry.param = (TIMER_PARAM_TYPE)p_lcb;
+                btu_start_timer(&p_lcb->retry_timer_entry,
+                                BTU_TTYPE_L2CAP_LINK_RETRY,
+                                L2C_LP_CONN_RETRY_DELAY_TOUT);
             } else {
-                l2cu_create_conn(p_lcb, BT_TRANSPORT_BR_EDR);
+                L2CAP_TRACE_WARNING("L2CAP - giving up Create_Connection "
+                                    "after %u retries, last status: 0x%02x",
+                                    p_lcb->br_edr_create_con_retries, status);
+                /* The retry budget is exhausted, so this LCB is going down
+                 * for good.  Re-dispatch L2CEVT_LP_CONNECT_CFM_NEG with the
+                 * ORIGINAL status: l2c_csm_closed() detects the exhausted
+                 * retry counter on the LCB and bypasses its
+                 * HCI_ERR_CONNECTION_EXISTS collision short-circuit, so each
+                 * CCB is released and the application is notified via
+                 * connect_cfm() with the real failure code. */
+                if (ci.status == HCI_ERR_CONNECTION_EXISTS) {
+                    for (p_ccb = p_lcb->ccb_queue.p_first_ccb; p_ccb; ) {
+                        tL2C_CCB *pn = p_ccb->p_next_ccb;
+                        l2c_csm_execute (p_ccb, L2CEVT_LP_CONNECT_CFM_NEG, &ci);
+                        p_ccb = pn;
+                    }
+                }
+                btu_stop_timer(&p_lcb->timer_entry);
+                btu_stop_timer(&p_lcb->retry_timer_entry);
+                l2cu_release_lcb(p_lcb);
             }
+#else
+            l2cu_release_lcb(p_lcb);
+#endif  ///CLASSIC_BT_INCLUDED == TRUE
         }
     }
     return (TRUE);
@@ -584,6 +633,61 @@ BOOLEAN l2c_link_hci_qos_violation (UINT16 handle)
     return (TRUE);
 }
 
+
+
+#if (CLASSIC_BT_INCLUDED == TRUE)
+/*******************************************************************************
+**
+** Function         l2c_link_create_conn_retry
+**
+** Description      Back-off timer between two host-driven Create_Connection
+**                  retries fired.  Re-issue the connection attempt now.  If
+**                  the LCB has been torn down (no CCBs left, link no longer
+**                  in a connecting state) we silently drop the retry.
+**
+** Returns          void
+**
+*******************************************************************************/
+void l2c_link_create_conn_retry (tL2C_LCB *p_lcb)
+{
+    if (p_lcb == NULL || !p_lcb->in_use) {
+        return;
+    }
+
+    /* If the application/upper layer already tore everything down while we
+     * were waiting for the back-off, do nothing. */
+    if (p_lcb->ccb_queue.p_first_ccb == NULL) {
+        L2CAP_TRACE_WARNING("L2CAP - retry timer fired but no CCB left, "
+                            "dropping retry");
+        return;
+    }
+
+    L2CAP_TRACE_EVENT("L2CAP - back-off elapsed, re-issuing Create_Connection "
+                      "(retry %u/%u)",
+                      p_lcb->br_edr_create_con_retries,
+                      L2CAP_CONN_EXIST_MAX_RETRY);
+
+    /* l2cu_create_conn() will (re)set link_state and arm the 60s
+     * BTU_TTYPE_L2CAP_LINK timer on p_lcb->timer_entry. */
+    if (!l2cu_create_conn(p_lcb, BT_TRANSPORT_BR_EDR)) {
+        tL2C_CONN_INFO ci;
+        tL2C_CCB *p_ccb;
+
+        L2CAP_TRACE_ERROR("L2CAP - retry l2cu_create_conn() failed, "
+                          "releasing LCB");
+
+        memset(&ci, 0, sizeof(ci));
+        memcpy(ci.bd_addr, p_lcb->remote_bd_addr, BD_ADDR_LEN);
+        ci.status = HCI_ERR_CONNECTION_TOUT;
+        for (p_ccb = p_lcb->ccb_queue.p_first_ccb; p_ccb; ) {
+            tL2C_CCB *pn = p_ccb->p_next_ccb;
+            l2c_csm_execute(p_ccb, L2CEVT_LP_CONNECT_CFM_NEG, &ci);
+            p_ccb = pn;
+        }
+        l2cu_release_lcb(p_lcb);
+    }
+}
+#endif  ///CLASSIC_BT_INCLUDED == TRUE
 
 
 /*******************************************************************************
